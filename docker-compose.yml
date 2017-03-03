@@ -1,0 +1,43 @@
+version: "2"
+
+services:
+  webservice:
+    image: bitnami/nginx:latest
+    restart: always
+    depends_on:
+      - phpfpm
+    ports:
+      - "8080:3000"
+    volumes:
+      - ./src:/app
+      - ./docker/scripts:/scripts
+      - ./docker/configs/nginx.conf:/bitnami/nginx/conf/vhosts/lampstack.conf
+    networks:
+      - lampstack
+  phpfpm:
+    image: 'bitnami/php-fpm:7.0'
+    restart: always
+    ports:
+      - '8081:9000'
+    networks:
+      - lampstack
+    volumes:
+      - ./src:/app
+      - ./docker/configs/php.ini:/bitnami/php-fpm/conf/php.ini
+  mariadb:
+    image: mariadb
+    restart: always
+    ports:
+      - "8082:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysqlpwd
+      - MYSQL_USER=laravel
+      - MYSQL_PASSWORD=laravel
+      - MYSQL_DATABASE=laravel
+    volumes:
+      - ./docker/data:/var/lib/mysql
+    networks:
+      - lampstack
+networks:
+  lampstack:
+    driver: bridge
